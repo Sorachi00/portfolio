@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Ipad Kid's Shooter - Blog</title>
+
+  <!-- Bootstrap -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+
+  <!-- Estilos propios -->
+  <style>
+    body {
+      font-family: "Segoe UI", Roboto, Arial, sans-serif;
+      background-color: #f4f6f9;
+      color: #333;
+    }
+    .blog-container {
+      max-width: 900px;
+    }
+    header h1 {
+      font-size: 3rem;
+      letter-spacing: -1px;
+    }
+    section {
+      background: #fff;
+      border-radius: 12px;
+      padding: 2rem;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.05);
+    }
+    section + section {
+      margin-top: 2rem;
+    }
+    pre {
+      border-radius: 8px;
+      padding: 1rem;
+      font-size: 0.9rem;
+    }
+    figcaption {
+      font-size: 0.9rem;
+      color: #666;
+    }
+  </style>
+
+  <!-- Highlight.js para código -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github-dark.min.css">
+</head>
+<body>
+  <div class="container blog-container py-5">
+
+    <!-- Encabezado -->
+    <header class="mb-5 text-center">
+      <h1 class="fw-bold">Ipad Kid's Shooter</h1>
+      <p class="text-muted">Publicado el <time datetime="2025-08-30">30 de agosto de 2025</time></p>
+      <hr class="w-25 mx-auto">
+    </header>
+
+    <!-- Diseño del proyecto -->
+    <section>
+      <h2 class="fw-semibold mb-3">🎮 Diseño del proyecto</h2>
+      <p>
+        El objetivo de este proyecto es diseñar una demo técnica de un shooter muy dinámico en 
+        <strong>Unity 3D</strong>. Se centra en crear un sistema modular de estados y un control
+        fluido del jugador.
+      </p>
+      <figure class="text-center">
+        <img src="../img/MovementShooter.png" alt="Nivel del juego" 
+             class="img-fluid rounded shadow-sm my-3">
+        <figcaption>Ejemplo de nivel del prototipo</figcaption>
+      </figure>
+    </section>
+
+    <!-- Patrones de diseño -->
+    <section>
+      <h2 class="fw-semibold mb-3">⚙️ Patrones de diseño usados</h2>
+      
+      <h5 class="mt-4">State pattern adaptado a Unity Monobehaviour</h5>
+      <p>
+        Este proyecto utiliza <em>State Pattern</em> en múltiples ocasiones.
+        Aquí un ejemplo simplificado de cómo se añaden estados al controlador del jugador:
+      </p>
+
+      <pre><code class="language-csharp">
+// Añade un estado como componente
+private T AddState<T>() where T : MonoBehaviour, IPlayerState {
+    if (TryGetComponent<T>(out T existingState)) {
+        return existingState;
+    }
+
+    T newState = gameObject.AddComponent<T>();
+    newState.enabled = false;
+    return newState;
+}
+
+private void Start() {
+    _playerStateContext = new PlayerStateContext(this);
+
+    _idleState   = AddState<PlayerIdleState>();
+    _jumpState   = AddState<PlayerJumpState>();
+    _runState    = AddState<PlayerRunState>();
+    _climbState  = AddState<PlayerClimbState>();
+    _wallJumpState = AddState<PlayerWallJumpState>();
+
+    RequestIdlePlayer();
+}
+      </code></pre>
+
+      <p>
+        Todos los estados se derivan de una interfaz común:
+      </p>
+
+      <pre><code class="language-csharp">
+public interface IPlayerState {
+    void Enter(PlayerController playerController);
+    void Exit();
+}
+      </code></pre>
+
+      <p>
+        Para gestionar el flujo se usa un contexto que controla el estado actual y permite
+        las transiciones:
+      </p>
+
+      <pre><code class="language-csharp">
+private readonly PlayerController _playerController;
+
+public PlayerStateContext(PlayerController playerController) {
+    _playerController = playerController;
+}
+
+public IPlayerState CurrentState { get; set; }
+
+public void Transition(IPlayerState state) {
+    Debug.Log("State changed to: " + state.GetType().Name);
+
+    CurrentState?.Exit();
+
+    if (CurrentState is MonoBehaviour oldState)
+        oldState.enabled = false;
+
+    CurrentState = state;
+
+    if (CurrentState is MonoBehaviour newState)
+        newState.enabled = true;
+
+    CurrentState.Enter(_playerController);
+}
+      </code></pre>
+
+      <h5 class="mt-4">Global Event Bus</h5>
+      <p>
+        El <strong>Global Event Bus</strong> es un patrón que centraliza la comunicación entre 
+        diferentes partes del juego. En lugar de que los objetos se refieran directamente entre sí, 
+        se suscriben a eventos globales. 
+      </p>
+      <ul>
+        <li><strong>Ventaja:</strong> Reduce dependencias directas entre clases.</li>
+        <li><strong>Ventaja:</strong> Permite lanzar un evento y que cualquier objeto suscrito lo reciba.</li>
+        <li><strong>Desventaja:</strong> Puede complicar el rastreo de quién responde a qué evento.</li>
+      </ul>
+      <p>
+        En este caso lo uso para coordinar el flujo de oleadas de enemigos:
+      </p>
+
+      <pre><code class="language-csharp">
+public enum WaveEventType {
+    COUNTDOWN, START, RESTART, PAUSE, STOP, FINISH, QUIT
+}
+
+public class WaveEventBus {
+    private static readonly IDictionary<WaveEventType, UnityEvent> Events 
+        = new Dictionary<WaveEventType, UnityEvent>();
+
+    public static void Subscribe(WaveEventType type, UnityAction listener) {
+        if (Events.TryGetValue(type, out UnityEvent thisEvent)) {
+            thisEvent.AddListener(listener);
+        } else {
+            thisEvent = new UnityEvent();
+            thisEvent.AddListener(listener);
+            Events.Add(type, thisEvent);
+        }
+    }
+
+    public static void Publish(WaveEventType type) {
+        if (Events.TryGetValue(type, out UnityEvent thisEvent)) {
+            thisEvent.Invoke();
+        }
+    }
+}
+      </code></pre>
+      <p>
+        Por ejemplo, el HUD puede escuchar el evento <code>START</code> para mostrar el marcador, 
+        mientras que el spawner de enemigos también escucha ese mismo evento para iniciar la oleada.
+      </p>
+    </section>
+
+
+
+
+  </div>
+
+  <!-- Bootstrap JS -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+  <!-- Highlight.js -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+  <script>hljs.highlightAll();</script>
+</body>
+</html>
