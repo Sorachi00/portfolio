@@ -53,7 +53,7 @@
     </header>
 
     <section>
-      <h2 class="fw-semibold mb-3">🎮 Diseño del proyecto</h2>
+      <h2 class="fw-semibold mb-3">Diseño del proyecto</h2>
       <p>
         El objetivo de este proyecto es diseñar una demo técnica de un shooter muy dinámico en 
         <strong>Unity 3D</strong>. Se centra en crear un sistema modular de estados y un control
@@ -67,7 +67,7 @@
     </section>
 
     <section>
-      <h2 class="fw-semibold mb-3">⚙️ Patrones de diseño usados</h2>
+      <h2 class="fw-semibold mb-3">Patrones de diseño usados</h2>
       
       <h5 class="mt-4">State pattern adaptado a Unity Monobehaviour</h5>
       <p>
@@ -186,11 +186,63 @@ public class WaveEventBus {
         Por ejemplo, el HUD puede escuchar el evento <code>START</code> para mostrar el marcador, 
         mientras que el spawner de enemigos también escucha ese mismo evento para iniciar la oleada.
       </p>
+
+
+
+    <h5 class="mt-4">Enemy pool</h5>
+    <p>Este es muy básico. Pre-instancio los enemigos, y los añado a un Queue para poder activar la cantidad que yo quiera, con delay mínimo, cuando lo necesite. Así evito sobrecargar la CPU y la RAM</p>
+
+<pre><code class="language-csharp">
+
+public class EnemyPool : MonoBehaviour
+{
+    [SerializeField] private GameObject enemyPrefab;
+    [SerializeField] private int poolSize = 50;
+
+
+    private Queue<GameObject> _pool = new Queue<GameObject>();
+
+    private void Awake()
+    {
+        _pool.Clear();
+        for (int i = 0; i < poolSize; i++)
+        {
+            GameObject enemy = Instantiate(enemyPrefab);
+            enemy.SetActive(false);
+            _pool.Enqueue(enemy);
+        }
+    }
+
+    public GameObject GetEnemy(Vector3 position)
+    {
+        if (_pool.Count > 0)
+        {
+            GameObject enemy = _pool.Dequeue();
+            enemy.transform.position = position;
+            enemy.SetActive(true);
+            return enemy;
+        }
+        else
+        {
+            GameObject enemy = Instantiate(enemyPrefab, position, Quaternion.identity);
+            return enemy;
+        }
+    }
+
+    public void ReturnEnemy(GameObject enemy)
+    {
+        enemy.SetActive(false);
+        _pool.Enqueue(enemy);
+    }
+
+    private void OnDisable()
+    {
+        _pool.Clear();
+    }
+}
+
+            </code></pre>
     </section>
-
-
-
-
   </div>
 
   <!-- Bootstrap JS -->
