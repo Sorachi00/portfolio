@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Automation Game Unity - Blog</title>
+
+  <!-- Bootstrap -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+
+  <!-- Highlight.js styles -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github-dark.min.css">
+
+  <!-- Custom styles -->
+  <style>
+    body {
+      font-family: "Segoe UI", Roboto, Arial, sans-serif;
+      background-color: #f4f6f9;
+      color: #333;
+    }
+    .blog-container {
+      max-width: 900px;
+    }
+    header h1 {
+      font-size: 3rem;
+      letter-spacing: -1px;
+    }
+    section {
+      background: #fff;
+      border-radius: 12px;
+      padding: 2rem;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.05);
+    }
+    section + section {
+      margin-top: 2rem;
+    }
+    pre {
+      border-radius: 8px;
+      padding: 1rem;
+      font-size: 0.9rem;
+    }
+    figcaption {
+      font-size: 0.9rem;
+      color: #666;
+    }
+    hr {
+      border-color: #ccc;
+    }
+
+    #homeButton {
+    position: fixed;       /* Lo fija en la pantalla */
+    top: 20px;             /* Separación desde el borde superior */
+    left: 20px;            /* Separación desde el borde izquierdo */
+    z-index: 1000;         /* Lo pone encima de otros elementos */
+    background-color: #007bff;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    padding: 0.6rem 1rem;
+    font-size: 1rem;
+    cursor: pointer;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+    transition: background-color 0.2s;
+}
+
+#homeButton:hover {
+    background-color: #0056b3;
+}
+  </style>
+</head>
+<body>
+<button id="homeButton">Home</button>
+  <div class="container blog-container py-5">
+
+    <!-- HEADER -->
+    <header class="mb-5 text-center">
+      <h1 class="fw-bold">Automation Game in Unity</h1>
+    </header>
+
+    <!-- SECTION 1: Introduction -->
+    <section>
+      <h2 class="fw-semibold mb-3">Introduction</h2>
+      <p>
+        This is a demo of an automation game made with Unity. Like many games in this genre, 
+        the player must create and optimize production lines. The twist here is that you produce 
+        soldiers to fight enemy waves, combining factory management and strategic combat.
+      </p>
+      <a href="https://sorachi00.itch.io/medieval-automation">Download</a>
+      <figure class="text-center">
+        <img src="../img/Automation.jpg" alt="Automation" 
+             class="img-fluid rounded shadow-sm my-3">
+        <figcaption>An archery production line</figcaption>
+      </figure>
+    </section>
+
+    <!-- SECTION 2: Project Design -->
+    <section>
+      <h2 class="fw-semibold mb-3">Project Design</h2>
+      <p>
+        The project follows design principles established by similar games, but with a limited scope 
+        due to budget constraints. To keep gameplay engaging in short sessions, a wave system was 
+        implemented. Every 10 minutes, your produced units face off against enemy waves. Winning 
+        advances you to a new tier of buildings, while losing resets progress.
+      </p>
+    </section>
+
+    <!-- SECTION 3: Technical Aspects -->
+    <section>
+      <h2 class="fw-semibold mb-3">Relevant Technical Aspects</h2>
+
+      <!-- Modular Production System -->
+      <h4>Modular Production System</h4>
+      <p>
+        Machines can produce multiple outputs (main and secondary) independently. Production is 
+        handled using coroutines (<code>IEnumerator ProductionLoop</code>) with <code>WaitForSeconds</code> 
+        to simulate real-world production cycles. Production only occurs when sufficient inputs 
+        are available (<code>CanProduce</code>), and both main and secondary outputs are managed 
+        efficiently.
+      </p>
+      <pre><code class="language-csharp">
+private IEnumerator ProductionLoop(MachineOutput output)
+{
+    if (output.isMain)
+    {
+        while (CanProduce())
+        {
+            foreach (var req in requiredInputs)
+                SafeAdd(inputInventory, req.item, -req.quantity, "inputInventory");
+
+            yield return new WaitForSeconds(output.productionTime);
+
+            SafeAdd(outputInventory, output.item, output.quantity, "outputInventory");
+            OnItemProduced?.Invoke(new ItemData { item = output.item, quantity = output.quantity }, true);
+            OnItemProductionEnd?.Invoke();
+        }
+    }
+    else
+    {
+        while (IsAnyMainRunning())
+        {
+            yield return new WaitForSeconds(output.productionTime);
+            SafeAdd(outputInventory, output.item, output.quantity, "outputInventory");
+            OnItemProduced?.Invoke(new ItemData { item = output.item, quantity = output.quantity }, false);
+            OnSubItemProductionEnd?.Invoke();
+        }
+    }
+}
+      </code></pre>
+
+      <!-- Flexible Inventory Management -->
+      <h4>Flexible Inventory Management</h4>
+      <p>
+        Inputs and outputs are stored in dictionaries (<code>inputInventory</code> and <code>outputInventory</code>) 
+        with safe access methods (<code>SafeAdd</code>, <code>SafeGet</code>, <code>SafeSet</code>) to avoid errors 
+        when keys do not exist. This allows items to be added or consumed safely and automatically.
+      </p>
+      <pre><code class="language-csharp">
+private void SafeAdd(Dictionary<ItemSO, int> dict, ItemSO item, int amount, string dictName)
+{
+    if (!dict.ContainsKey(item))
+    {
+        Debug.LogWarning($"[INFO] Item {item.name} was not in {dictName}, initializing automatically.");
+        dict[item] = 0;
+    }
+    dict[item] += amount;
+}
+      </code></pre>
+
+      <!-- Object Pool -->
+      <h4>Object Pool System</h4>
+      <p>
+        Object pooling is used to optimize performance by reusing machine and item objects instead 
+        of instantiating/destroying them repeatedly. Pools are implemented as dictionaries mapping 
+        object names to lists of inactive GameObjects.
+      </p>
+      <pre><code class="language-csharp">
+private Dictionary<string, List<GameObject>> MachinePool = new();
+private Dictionary<string, List<GameObject>> ItemPool = new();
+
+private void InstantiateCopiesOfEveryMachine()
+{
+    int offset = 0;
+    foreach (var machine in MachineSOs)
+    {
+        List<GameObject> list = new List<GameObject>();
+        for(int i = 0; i < poolSize; i++)
+        {
+            offset += 1;
+            GameObject obj = Instantiate(MachineHolderPref, StartMachineSpawnPos.position + Vector3.one * offset, StartMachineSpawnPos.rotation);
+            obj.GetComponent<Machine>().InitializeMachine(machine);
+
+            if(machine.type == MachineType.Chest)
+                chests.Add(obj.GetComponent<Machine>());
+
+            obj.SetActive(false);
+            list.Add(obj);
+        }
+        MachinePool.Add(machine.MachineName, list);
+    }
+}
+
+private void InstantiateCopiesOfEveryItem()
+{
+    foreach(var item in ItemSOs)
+    {
+        List<GameObject> list = new List<GameObject>();
+        for (int i = 0; i < itemPoolSize; i++)
+        {
+            GameObject obj = Instantiate(ItemPref, StartMachineSpawnPos.position, StartMachineSpawnPos.rotation);
+            obj.GetComponent<ItemVisual>().SetItemSO(item);
+            obj.SetActive(false);
+            list.Add(obj);
+        }
+        ItemPool.Add(item.ItemName, list);
+    }
+}
+
+// Request object from pool
+public GameObject RequestMachine(string name) { /*...*/ }
+public GameObject RequestItem(string name) { /*...*/ }
+
+// Return object to pool
+public void ReturnMachine(string name, GameObject obj) { /*...*/ }
+public void ReturnItem(string name, GameObject obj) { /*...*/ }
+      </code></pre>
+      <p>
+        The pool system allows for on-demand instantiation if the pool is empty and ensures all 
+        objects are reset before reuse, improving performance and reducing memory usage.
+      </p>
+
+    </section>
+
+    <!-- SECTION 4: Conclusion -->
+    <section>
+      <h2 class="fw-semibold mb-3">Conclusion</h2>
+      <p>
+        This project demonstrates modular production systems, safe inventory management, and 
+        efficient object pooling in Unity. Future improvements could include more complex AI for 
+        waves, additional machine types, and expanded production chains, all maintaining a clean 
+        and optimized architecture.
+      </p>
+    </section>
+
+  </div>
+
+  <!-- Bootstrap JS -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+
+  <!-- Highlight.js -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+  <script>hljs.highlightAll();</script>
+
+  <script>
+document.getElementById('homeButton').addEventListener('click', function() {
+    window.location.href = '/'; // Cambia '/' por la URL de tu página principal
+});
+</script>
+</body>
+</html>

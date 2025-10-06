@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>PkmBW2TextHook - Blog</title>
+
+  <!-- Bootstrap -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github-dark.min.css">
+
+  <style>
+    body {
+      font-family: "Segoe UI", Roboto, Arial, sans-serif;
+      background-color: #f4f6f9;
+      color: #333;
+    }
+    .blog-container {
+      max-width: 900px;
+    }
+    header h1 {
+      font-size: 3rem;
+      letter-spacing: -1px;
+    }
+    section {
+      background: #fff;
+      border-radius: 12px;
+      padding: 2rem;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.05);
+    }
+    section + section {
+      margin-top: 2rem;
+    }
+    pre {
+      border-radius: 8px;
+      padding: 1rem;
+      font-size: 0.9rem;
+    }
+    figcaption {
+      font-size: 0.9rem;
+      color: #666;
+    }
+    hr {
+      border-color: #ccc;
+    }
+  </style>
+</head>
+<body>
+  <div class="container blog-container py-5">
+
+    <!-- HEADER -->
+    <header class="mb-5 text-center">
+      <h1 class="fw-bold">PkmBW2TextHook</h1>
+      <p class="text-muted">Tool for extracting text directly from Pokémon Black & White 2 memory on PC</p>
+      <hr class="w-25 mx-auto">
+    </header>
+
+    <!-- SECTION 1: Introduction -->
+    <section>
+      <h2 class="fw-semibold mb-3">Introduction</h2>
+      <p>
+        <strong>PkmBW2TextHook</strong> is a C# tool using Avalonia that hooks into the <strong>melonDS</strong> emulator to extract text in real-time from the memory of <strong>Pokémon Black 2 & White 2</strong> (Nintendo DS). The main purpose of the program is to extract kanji and Japanese text for study, helping users to learn the language while playing the game.
+      </p>
+      <figure class="text-center">
+        <img src="../img/Texthook.png" alt="Main window of PkmBW2TextHook" class="img-fluid rounded shadow-sm my-3">
+        <figcaption>Main application interface (mockup)</figcaption>
+      </figure>
+    </section>
+
+    <!-- SECTION 2: Project Design -->
+    <section>
+      <h2 class="fw-semibold mb-3">Project Design</h2>
+      <p>
+        The application follows a modular architecture with .NET 8 and Avalonia for the UI. The <code>TextHook</code> class handles locating the emulator process, hooking into its memory, and reading text blocks. 
+        <br>
+        The UI (<code>MainWindow.axaml</code>) provides buttons to hook the emulator and start extraction, while logs and extracted text are displayed in real-time.
+      </p>
+      <p>
+        Memory access is handled using native Windows APIs (OpenProcess, ReadProcessMemory), allowing hot memory reading and extraction of kanji and Japanese text.
+      </p>
+    </section>
+
+
+    <!-- SECTION 4: Technical Notes -->
+    <section>
+      <h2 class="fw-semibold mb-3">Technical Notes</h2>
+      <ul>
+        <li><strong>Memory Hook:</strong> Uses OpenProcess and ReadProcessMemory to access melonDS memory.</li>
+        <li><strong>Automatic Extraction:</strong> Extraction runs in background threads to avoid blocking the UI.</li>
+        <li><strong>Clipboard Copy:</strong> Extracted text is automatically copied to the clipboard if enabled.</li>
+        <li><strong>Cross-Platform UI:</strong> Avalonia handles the interface, while memory hooking works only on Windows.</li>
+        <li><strong>Setup:</strong> Users launch melonDS and click "Hook Emulator" then "Start Extraction".</li>
+      </ul>
+      <p>Below are references to key parts of the code:</p>
+
+      <h4>MainWindow Initialization</h4>
+      <pre><code class="language-csharp">
+_textHook = new TextHook();
+_textHook.OnTextExtracted += TextHook_OnTextExtracted;
+_textHook.OnLog += TextHook_OnLog;
+
+HookButton.Click += HookButton_Click;
+StartButton.Click += StartButton_Click;
+      </code></pre>
+
+      <h4>Hooking the Emulator Process</h4>
+      <pre><code class="language-csharp">
+Process[] processes = Process.GetProcessesByName("melonDS");
+IntPtr hProcess = OpenProcess(PROCESS_QUERY_INFORMATION | PROCESS_VM_READ, false, processes[0].Id);
+      </code></pre>
+
+      <h4>Text Extraction Loop</h4>
+      <pre><code class="language-csharp">
+byte[] buffer = new byte[500];
+ReadProcessMemory(_proc.Handle, (nint)baseAddress, buffer, 500, out UIntPtr bytesRead);
+string text = Encoding.GetEncoding("UTF-16LE").GetString(buffer, 0, (int)bytesRead);
+text = text.Replace("\0", "").Replace("븁", "\n");
+// filter invalid chars
+OnTextExtracted?.Invoke(text);
+CopyToClipboard(text);
+      </code></pre>
+
+      <h4>Copy to Clipboard</h4>
+      <pre><code class="language-csharp">
+OpenClipboard(IntPtr.Zero);
+EmptyClipboard();
+IntPtr hGlobal = Marshal.StringToHGlobalUni(text);
+SetClipboardData(13, hGlobal);
+CloseClipboard();
+      </code></pre>
+    </section>
+
+  </div>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+  <script>hljs.highlightAll();</script>
+</body>
+</html>

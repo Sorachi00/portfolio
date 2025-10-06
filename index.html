@@ -32,12 +32,37 @@
       border: 3px solid #0d6efd;
     }
     .project-btn {
+      position: relative;
+      overflow: hidden;
       transition: transform 0.2s ease-in-out, box-shadow 0.2s;
     }
     .project-btn:hover {
       transform: translateY(-5px);
       box-shadow: 0 6px 20px rgba(0,0,0,0.15);
     }
+
+    /* Overlay de descripción */
+    .project-overlay {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0,0,0,0.7);
+      color: #fff;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      opacity: 0;
+      padding: 1rem;
+      text-align: center;
+      font-size: 0.9rem;
+      transition: opacity 0.3s ease;
+    }
+    .project-btn:hover .project-overlay {
+      opacity: 1;
+    }
+
     .social-links a {
       font-size: 1.5rem;
       margin: 0 0.5rem;
@@ -54,10 +79,14 @@
       border-top: 1px solid #e0e0e0;
       text-align: center;
     }
+    .filter-btn {
+      margin: 0.2rem;
+    }
   </style>
 </head>
 <body>
   <div class="container">
+    <!-- Header -->
     <div class="header-card mx-auto">
       <div class="row align-items-center">
         <div class="col-md-3 text-center mb-3 mb-md-0">
@@ -66,30 +95,117 @@
         </div>
         <div class="col-md-9">
           <p class="lead">
-            Desarrollador y diseñador de videojuegos. Trabajo principalmente en <strong>Unity</strong>. 
-            Tengo experiencia en <em>emuladores</em> e <em>ingeniería inversa</em>. 
-            Vendí mi alma a Microsoft, por lo que mi lenguaje principal es <strong>C#</strong>.
+            ASP.Net with 2+ years of experience and Game developer. Work mainly with <strong>C#</strong>. 
+            I have experience developing <em>emulators</em> and with <em>reverse engineering</em>. 
+            Focused now on <strong>Game Dev</strong>.
           </p>
         </div>
       </div>
     </div>
 
-    <h3 class="mt-5 mb-3">Proyectos</h3>
-    <div class="row row-cols-1 row-cols-md-3 g-4">
-      <div class="col">
-        <a href="pages/MovementShooter.html" target="_blank" class="btn btn-light w-100 p-0 project-btn">
-          <img src="img/MovementShooter.png" alt="Ipad Kid's Shooter" class="img-fluid rounded">
-          <div class="p-2">Ipad Kid's Shooter</div>
-        </a>
-      </div>
-      <div class="col">
-        <a href="https://github.com/CardinalSys/C_Chip8" target="_blank" class="btn btn-light w-100 p-0 project-btn">
-          <img src="img/chip8.png" alt="Chip8 Emulator" class="img-fluid rounded">
-          <div class="p-2">Chip 8 Emulator</div>
-      </a>
-      </div>
+    <!-- Projects Section -->
+    <h3 class="mt-5 mb-3">Projects</h3>
+
+    <!-- Filter Buttons -->
+    <div class="text-center mb-4">
+      <button class="btn btn-primary filter-btn active" data-filter="all">All</button>
+      <button class="btn btn-outline-primary filter-btn" data-filter="game">Game Dev</button>
+      <button class="btn btn-outline-primary filter-btn" data-filter="emulation">Emulation</button>
+      <button class="btn btn-outline-primary filter-btn" data-filter="reverse">Reverse Engineering</button>
+      <button class="btn btn-outline-primary filter-btn" data-filter="software">Software</button>
+      <button class="btn btn-outline-primary filter-btn" data-filter="unity">Unity</button>
+      <button class="btn btn-outline-primary filter-btn" data-filter="c#">C#</button>
+      <button class="btn btn-outline-primary filter-btn" data-filter="c">C</button>
+      <button class="btn btn-outline-primary filter-btn" data-filter="cpp">C++</button>
+      <button class="btn btn-outline-primary filter-btn" data-filter="other">Other</button>
     </div>
 
+    <!-- Projects Grid -->
+    <div class="row row-cols-1 row-cols-md-3 g-4" id="projects-container">
+      
+      <div class="col project-card" data-tags="game unity c#" data-description="Automation survival prototype with wave-based enemy AI and crafting.">
+        <a href="pages/Automation.html" target="_blank" class="btn btn-light w-100 p-0 project-btn">
+          <img src="img/Automation.jpg" alt="Wave Medieval Automation" class="img-fluid rounded">
+          <div class="project-overlay"></div>
+          <div class="p-2">Automation game with wave system</div>
+        </a>
+      </div>
+
+      <div class="col project-card" data-tags="game unity c#" data-description="Fast-paced shooter prototype with advanced movement mechanics.">
+        <a href="pages/MovementShooter.html" target="_blank" class="btn btn-light w-100 p-0 project-btn">
+          <img src="img/MovementShooter.png" alt="Movement Shooter" class="img-fluid rounded">
+          <div class="project-overlay"></div>
+          <div class="p-2">Movement Shooter</div>
+        </a>
+      </div>
+
+      <div class="col project-card" data-tags="game unity c#" data-description="Recreation of Pokémon BW mechanics and visuals in Unity.">
+        <a href="pages/PokemonBW.html" target="_blank" class="btn btn-light w-100 p-0 project-btn">
+          <img src="img/PokemonBW.jpg" alt="PokemonBW" class="img-fluid rounded">
+          <div class="project-overlay"></div>
+          <div class="p-2">Pokemon BW Recreation</div>
+        </a>
+      </div>
+
+      <div class="col project-card" data-tags="game cpp" data-description="WIP">
+        <a href="pages/PhysicsEngine.html" target="_blank" class="btn btn-light w-100 p-0 project-btn">
+          <img src="img/physics.jpg" alt="Physics Engine" class="img-fluid rounded">
+          <div class="project-overlay"></div>
+          <div class="p-2">Physics Engine</div>
+        </a>
+      </div>
+
+      <div class="col project-card" data-tags="reverse unity c#" data-description="Multiplayer mod adding co-op gameplay to Flatworld.">
+        <a href="https://github.com/Sorachi00/FlatworldMultiplayerMod" target="_blank" class="btn btn-light w-100 p-0 project-btn">
+          <img src="img/flatworld.png" alt="flatworld" class="img-fluid rounded">
+          <div class="project-overlay"></div>
+          <div class="p-2">Multiplayer mod for Flatworld</div>
+        </a>
+      </div>
+
+      <div class="col project-card" data-tags="emulation c software" data-description="Fully functional CHIP-8 emulator written in C.">
+        <a href="https://github.com/CardinalSys/C_Chip8" target="_blank" class="btn btn-light w-100 p-0 project-btn">
+          <img src="img/chip8.png" alt="Chip8 Emulator" class="img-fluid rounded">
+          <div class="project-overlay"></div>
+          <div class="p-2">Chip 8 Emulator</div>
+        </a>
+      </div>
+
+      <div class="col project-card" data-tags="reverse c software" data-description="Tool to flip screen orientation in Zelda Twilight Princess HD.">
+        <a href="https://github.com/Sorachi00/ZeldaTPHD-ScreenOrientation" target="_blank" class="btn btn-light w-100 p-0 project-btn">
+          <img src="img/zeldatp.png" alt="ZeldaTP Screen Orientation" class="img-fluid rounded">
+          <div class="project-overlay"></div>
+          <div class="p-2">Zelda TP HD Screen Orientation Flipper</div>
+        </a>
+      </div>
+
+      <div class="col project-card" data-tags="reverse c# software" data-description="Extracts and hooks in-game text for learning japanese.">
+        <a href="pages/TextHook.html" target="_blank" class="btn btn-light w-100 p-0 project-btn">
+          <img src="img/Texthook.png" alt="Pokemon BW2 Texthook" class="img-fluid rounded">
+          <div class="project-overlay"></div>
+          <div class="p-2">Pokemon BW2 Texthook</div>
+        </a>
+      </div>
+
+      <div class="col project-card" data-tags="reverse c# software" data-description="Experimental multiplayer mod for classic Pokémon Red/Blue. Old project with not that good code">
+        <a href="https://github.com/Sorachi00/PokemonRedBlueMultiplayer" target="_blank" class="btn btn-light w-100 p-0 project-btn">
+          <img src="img/pkmMp.jpg" alt="Pokemon Red and Blue Multiplayer" class="img-fluid rounded">
+          <div class="project-overlay"></div>
+          <div class="p-2">Pokemon Red and Blue Multiplayer</div>
+        </a>
+      </div>
+
+      <div class="col project-card" data-tags="other" data-description="HalfAdder logic recreated within Zelda Tears of the Kingdom.">
+        <a href="https://x.com/CardinalSys0/status/1813277995265892514" class="btn btn-light w-100 p-0 project-btn">
+          <img src="img/HalfAdder.jpg" alt="HalfAdder" class="img-fluid rounded">
+          <div class="project-overlay"></div>
+          <div class="p-2">HalfAdder in Zelda ToTK</div>
+        </a>
+      </div>
+
+    </div>
+
+    <!-- Footer -->
     <footer class="mt-5">
       <h4 class="fw-bold">Redes sociales</h4>
       <div class="social-links mb-3">
@@ -99,10 +215,44 @@
       </div>
       <small class="text-muted">© 2025 Sorachi</small>
     </footer>
-
   </div>
 
   <!-- Bootstrap JS -->
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+
+  <!-- Filter Script -->
+  <script>
+    const filterButtons = document.querySelectorAll('.filter-btn');
+    const projects = document.querySelectorAll('.project-card');
+
+    // Añadir descripciones automáticamente
+    projects.forEach(project => {
+      const overlay = project.querySelector('.project-overlay');
+      overlay.textContent = project.getAttribute('data-description') || '';
+    });
+
+    // Filtro
+    filterButtons.forEach(btn => {
+      btn.addEventListener('click', () => {
+        const filter = btn.getAttribute('data-filter');
+
+        // Cambiar estado activo de los botones
+        filterButtons.forEach(b => b.classList.remove('btn-primary', 'active'));
+        filterButtons.forEach(b => b.classList.add('btn-outline-primary'));
+        btn.classList.remove('btn-outline-primary');
+        btn.classList.add('btn-primary', 'active');
+
+        // Filtrar proyectos
+        projects.forEach(project => {
+          const tags = project.getAttribute('data-tags').split(' ');
+          if (filter === 'all' || tags.includes(filter)) {
+            project.style.display = 'block';
+          } else {
+            project.style.display = 'none';
+          }
+        });
+      });
+    });
+  </script>
 </body>
 </html>

@@ -39,11 +39,32 @@
       font-size: 0.9rem;
       color: #666;
     }
+
+    #homeButton {
+    position: fixed;       /* Lo fija en la pantalla */
+    top: 20px;             /* Separación desde el borde superior */
+    left: 20px;            /* Separación desde el borde izquierdo */
+    z-index: 1000;         /* Lo pone encima de otros elementos */
+    background-color: #007bff;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    padding: 0.6rem 1rem;
+    font-size: 1rem;
+    cursor: pointer;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+    transition: background-color 0.2s;
+}
+
+#homeButton:hover {
+    background-color: #0056b3;
+}
   </style>
 
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github-dark.min.css">
 </head>
 <body>
+  <button id="homeButton">Home</button>
   <div class="container blog-container py-5">
 
     <header class="mb-5 text-center">
@@ -250,5 +271,11 @@ public class EnemyPool : MonoBehaviour
   <!-- Highlight.js -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
   <script>hljs.highlightAll();</script>
+
+  <script>
+document.getElementById('homeButton').addEventListener('click', function() {
+    window.location.href = '/'; // Cambia '/' por la URL de tu página principal
+});
+</script>
 </body>
 </html>
